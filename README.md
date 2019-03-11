@@ -1,5 +1,8 @@
 # Telegram Contest - Charts
 
+[Result should behave like this](requirements/animated.gif)
+
+
 Use JSON file as input data for the 5 charts. It contains a vector of JSON objects ('chart'), each representing a separate graph.
 
 chart.columns – List of all data columns in the chart. Each column has its label at position 0, followed by values.
