@@ -1,6 +1,6 @@
 # Telegram Contest - Charts
 
-[Result should behave like this](requirements/animated.gif)
+![Result should behave like this](requirements/animated.gif)
 
 
 Use JSON file as input data for the 5 charts. It contains a vector of JSON objects ('chart'), each representing a separate graph.
