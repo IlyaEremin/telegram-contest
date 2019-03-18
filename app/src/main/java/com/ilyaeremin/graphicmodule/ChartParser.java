@@ -12,9 +12,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-class GraphicParser {
+class ChartParser {
 
-    static Graphic parse(@NonNull String jsonString) {
+    static Chart parse(@NonNull String jsonString) {
         try {
             JSONObject          json = new JSONObject(jsonString);
             Map<String, Column> hash = new HashMap<>();
@@ -46,19 +46,25 @@ class GraphicParser {
 
             JSONArray columns = json.getJSONArray("columns");
             JSONArray columnX = columns.getJSONArray(0);
+            float initialX = (float) columnX.getDouble(1);
             for (int i = 1; i < columnX.length(); i++) {
                 for (int j = 1; j < columns.length(); j++) {
                     JSONArray columnJson = columns.getJSONArray(j);
                     String    columnKey  = columnJson.getString(0);
                     Column    column     = getOrCreateAddAndGet(hash, columnKey);
-                    Point     point      = new Point(columnX.getLong(i), columnJson.getInt(i));
-                    column.points.add(point);
+                    float x          = (float) columnX.getDouble(i);
+                    float y      = (float) columnJson.getDouble(i);
+                    if (column.points == null) {
+                        column.points = new float[(columnX.length() - 1) * 2];
+                    }
+                    column.points[(i - 1) * 2] = x - initialX;
+                    column.points[(i - 1) * 2 + 1] = y;
                 }
             }
 
-            Graphic graphic = new Graphic();
-            graphic.columns = new ArrayList<>(hash.values());
-            return graphic;
+            Chart chart = new Chart();
+            chart.columns = new ArrayList<>(hash.values());
+            return chart;
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
