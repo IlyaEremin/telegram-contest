@@ -1,8 +1,20 @@
 package com.ilyaeremin.graphicmodule;
 
+import android.content.res.ColorStateList;
+import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.v4.widget.CompoundButtonCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.util.TypedValue;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -12,14 +24,67 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTitle(R.string.title_statistics);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        ChartView uiChart = findViewById(R.id.chart);
+        final ChartView uiChart = findViewById(R.id.chart);
+        final Chart     chart   = ChartParser.parse(json);
+        uiChart.setChart(chart);
         uiChart.invalidate();
-        uiChart.setChart(ChartParser.parse(json));
-        uiChart.invalidate();
+        LinearLayout uiColumns = findViewById(R.id.columns);
+        uiColumns.removeAllViews();
+        for (int i = 0; i < chart.columns.size(); i++) {
+            uiColumns.addView(createCheckbox(chart, i, uiChart));
+        }
+        SeekBar uiSeekbar = findViewById(R.id.seek);
+        uiSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                uiChart.setInterval(progress, progress + 20);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+
+    private AppCompatCheckBox createCheckbox(@NonNull final Chart chart, final int position, @NonNull final ChartView uiChart) {
+        final Column            column     = chart.columns.get(position);
+        final AppCompatCheckBox uiCheckBox = new AppCompatCheckBox(this);
+        uiCheckBox.setText(column.name);
+        if (Build.VERSION.SDK_INT < 21) {
+            CompoundButtonCompat.setButtonTintList(uiCheckBox, ColorStateList.valueOf(column.color));
+        } else {
+            uiCheckBox.setButtonTintList(ColorStateList.valueOf(column.color));
+        }
+        final float scale        = this.getResources().getDisplayMetrics().density;
+        final int   extraPadding = (int) (10.0f * scale + 0.5f);
+
+        uiCheckBox.setChecked(true);
+        uiCheckBox.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+
+        uiCheckBox.setPadding(uiCheckBox.getPaddingLeft() + extraPadding,
+            uiCheckBox.getPaddingTop() + extraPadding,
+            uiCheckBox.getPaddingRight(),
+            uiCheckBox.getPaddingBottom() + extraPadding);
+
+        uiCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                uiChart.visible[position] = isChecked;
+                uiChart.invalidate();
+            }
+        });
+        return uiCheckBox;
     }
 }

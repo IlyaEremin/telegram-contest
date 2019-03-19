@@ -41,7 +41,25 @@ class Column {
         return points[points.length - 2] - points[0];
     }
 
+    public float getWidthOf(int left, int right) {
+        return points[points.length / 100 * right] - points[points.length / 100 * left];
+    }
+
     public float getHeight() {
-        return points[points.length - 1] - points[1];
+        return getHeighthOf(0, 100);
+    }
+
+    public float getHeighthOf(int left, int right) {
+        float min = 0;
+        float max = Float.MIN_VALUE;
+        for (int i = 1 + points.length / 100 * left; i < points.length / 100 * right; i+= 2) {
+            if (points[i] > max) {
+                max = points[i];
+            }
+            if (points[i] < min) {
+                min = points[i];
+            }
+        }
+        return max - min;
     }
 }

@@ -27,7 +27,22 @@ public class ColumnTest {
         final String expectedId     = "y1";
         final Column column         = new Column(expectedId);
         final float  expectedHeight = 123L;
-        column.points = new float[]{0, 0, 0, 123};
+        column.points = new float[]{0, 0, 0, 123, 0, 0};
+
+        // Act
+        float actualHeight = column.getHeight();
+
+        // Assert
+        assertEquals(expectedHeight, actualHeight, 0.000001f);
+    }
+
+    @Test
+    public void getHeightTest_minIsBiggenThanZero() {
+        // Assert
+        final String expectedId     = "y1";
+        final Column column         = new Column(expectedId);
+        final float  expectedHeight = 123L;
+        column.points = new float[]{0, 10, 0, 123};
 
         // Act
         float actualHeight = column.getHeight();

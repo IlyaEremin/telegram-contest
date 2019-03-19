@@ -4,16 +4,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
     tools:context=".MainActivity">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:layout_marginTop="16dp"
+        android:text="@string/followers"
+        android:textColor="#5095CF"
+        android:textSize="16sp" />
 
     <com.ilyaeremin.graphicmodule.ChartView
         android:id="@+id/chart"
         android:layout_width="match_parent"
         android:layout_height="300dp" />
+
+    <android.support.v7.widget.AppCompatSeekBar
+        android:id="@+id/seek"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:max="80"
+        />
+
+    <LinearLayout
+        android:id="@+id/columns"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
 
 </LinearLayout>

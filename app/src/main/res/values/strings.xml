@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Graphic Module</string>
+    <string name="followers">Followers</string>
+    <string name="title_statistics">Statistics</string>
 </resources>
