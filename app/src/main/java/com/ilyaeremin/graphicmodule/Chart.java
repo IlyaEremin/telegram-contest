@@ -1,6 +1,6 @@
 package com.ilyaeremin.graphicmodule;
 
-import android.util.Log;
+import com.ilyaeremin.graphicmodule.utils.MathUtils;
 
 import java.util.List;
 

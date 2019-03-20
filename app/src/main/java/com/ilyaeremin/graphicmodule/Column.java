@@ -1,5 +1,7 @@
 package com.ilyaeremin.graphicmodule;
 
+import com.ilyaeremin.graphicmodule.utils.MathUtils;
+
 import java.util.Arrays;
 
 class Column {

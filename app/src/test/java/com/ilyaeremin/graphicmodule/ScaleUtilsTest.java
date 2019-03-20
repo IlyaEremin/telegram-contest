@@ -1,5 +1,7 @@
 package com.ilyaeremin.graphicmodule;
 
+import com.ilyaeremin.graphicmodule.utils.ScaleUtils;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;

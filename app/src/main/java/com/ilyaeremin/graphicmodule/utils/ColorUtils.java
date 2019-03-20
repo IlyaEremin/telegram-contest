@@ -1,4 +1,4 @@
-package com.ilyaeremin.graphicmodule;
+package com.ilyaeremin.graphicmodule.utils;
 
 import android.support.annotation.ColorInt;
 import android.support.annotation.Size;
@@ -6,7 +6,7 @@ import android.support.annotation.Size;
 import java.util.HashMap;
 import java.util.Locale;
 
-public class Color {
+public class ColorUtils {
     @ColorInt public static final int BLACK  = 0xFF000000;
     @ColorInt public static final int DKGRAY = 0xFF444444;
     @ColorInt public static final int GRAY   = 0xFF888888;

@@ -3,6 +3,8 @@ package com.ilyaeremin.graphicmodule;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.ilyaeremin.graphicmodule.utils.ColorUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +25,7 @@ class ChartParser {
             for (Iterator<String> it = colors.keys(); it.hasNext(); ) {
                 String key    = it.next();
                 Column column = getOrCreateAddAndGet(hash, key);
-                column.color = Color.parseColor((String) colors.get(key));
+                column.color = ColorUtils.parseColor((String) colors.get(key));
             }
             JSONObject names = json.getJSONObject("names");
             for (Iterator<String> it = names.keys(); it.hasNext(); ) {

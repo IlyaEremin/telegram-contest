@@ -1,6 +1,7 @@
 package com.ilyaeremin.graphicmodule;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.support.annotation.IntRange;
@@ -8,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import java.util.Arrays;
@@ -16,99 +16,127 @@ import java.util.List;
 
 public class ChartView extends View {
 
-    private static final String TAG            = "ChartView";
-    public static final  int    SEGMENTS_COUNT = 5;
+    private static final String TAG                     = "ChartView";
+    public static final  int    SEGMENTS_COUNT          = 5;
+    public static final  int    DATES_COUNT             = 6;
+    public static final  int    CHART_WIDTH             = 2;
+    public static final  int    LABEL_TEXT_SIZE         = 12;
+    public static final  int    Y_LABELS_BOTTOM_PADDING = 4;
+    public static final  int    X_LABELS_TOP_PADDING    = 4;
 
     private Chart chart;
-    boolean[] visible;
-    private float     scaleY;
-    private float     scaleX;
+    boolean[] columnsVisibility;
     private float[][] drawingPointsForChart;
     private Paint[]   columnPaints;
     private Paint     gridPaint;
     private Paint     axisLabelPaint;
     float maxColumnValue = Float.MIN_VALUE;
     float intervalLength = Float.MIN_VALUE;
-    private int left  = 0;
-    private int right = 100;
+    private int     left  = 0;
+    private int     right = 100;
+    private boolean enableGrid;
+    private boolean enableLabels;
 
     public ChartView(Context context) {
         super(context);
-        init();
+        init(null);
     }
 
     public ChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(attrs);
     }
 
     public ChartView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        init(attrs);
     }
 
-    private void init() {
+    private void init(@Nullable AttributeSet attrs) {
         gridPaint = new Paint();
         gridPaint.setColor(0xffEDEDEE);
         gridPaint.setStrokeWidth(2f);
         axisLabelPaint = new TextPaint();
         axisLabelPaint.setAntiAlias(true);
-        axisLabelPaint.setTextSize(12 * getDensity());
+        axisLabelPaint.setTextSize(toSp(LABEL_TEXT_SIZE));
         axisLabelPaint.setColor(0xFF9AA5AC);
+
+        TypedArray a = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.ChartView, 0, 0);
+        try {
+            this.enableGrid = a.getBoolean(R.styleable.ChartView_enableGrid, false);
+            this.enableLabels = a.getBoolean(R.styleable.ChartView_enableLabels, false);
+        } finally {
+            a.recycle();
+        }
     }
 
-    private float getDensity() {
-        return getResources().getDisplayMetrics().density;
+    private float toSp(int textSize) {
+        return textSize * getResources().getDisplayMetrics().scaledDensity;
+    }
+
+    private float toDp(int dp) {
+        return dp * getResources().getDisplayMetrics().density;
     }
 
     public void setChart(@NonNull final Chart chart) {
         this.chart = chart;
-
         columnPaints = new Paint[chart.columns.size()];
-        List<Column> columns = chart.columns;
-        visible = new boolean[chart.columns.size()];
-        Arrays.fill(visible, true);
-        for (int i = 0; i < columns.size(); i++) {
-            final Column column = columns.get(i);
-            float        width  = column.getWidth();
-            float        height = column.getHeight();
-            if (maxColumnValue < height) {
-                maxColumnValue = height;
-            }
-            if (intervalLength < width) {
-                intervalLength = width;
-            }
+        columnsVisibility = new boolean[chart.columns.size()];
+        drawingPointsForChart = new float[chart.columns.size()][];
+        Arrays.fill(columnsVisibility, true);
+        intervalLength = chart.getWidth(left, right);
+        for (int i = 0; i < chart.columns.size(); i++) {
+            final Column column = chart.columns.get(i);
             columnPaints[i] = new Paint();
             columnPaints[i].setColor(column.color);
-            columnPaints[i].setStrokeWidth(2 * getDensity());
+            columnPaints[i].setStrokeWidth(toDp(CHART_WIDTH));
         }
         post(new Runnable() {
             @Override
             public void run() {
-                translateCoordinates();
+                calculateCoordinates();
             }
         });
     }
 
-    private void translateCoordinates() {
-        drawingPointsForChart = new float[chart.columns.size()][];
-        scaleX = getWidth() / chart.getWidth(left, right);
-        scaleY = getHeight() / maxColumnValue;
+    private void calculateCoordinates() {
+        maxColumnValue = Float.MIN_VALUE;
+        for (int i = 0; i < this.chart.columns.size(); i++) {
+            Column column = this.chart.columns.get(i);
+            if (isColumnVisible(i)) {
+                float maxHeightOfInterval = column.getHeighthOf(left, right);
+                if (maxColumnValue < maxHeightOfInterval) {
+                    maxColumnValue = maxHeightOfInterval;
+                }
+            }
+        }
+        float        scaleX  = getChartCanvasWidth() / chart.getWidth(left, right);
+        float        scaleY  = getChartCanvasHeight() / maxColumnValue;
         List<Column> columns = chart.columns;
         for (int i = 0; i < columns.size(); i++) {
             Column column = columns.get(i);
-            drawingPointsForChart[i] = translate(column.points, scaleX, scaleY);
+            drawingPointsForChart[i] = translate(column.points, drawingPointsForChart[i], scaleX, scaleY);
         }
+        invalidate();
     }
 
-    private float[] translate(float[] points, float scaleX, float scaleY) {
-        float[] result = new float[points.length];
+    private boolean isColumnVisible(int i) {
+        return columnsVisibility[i];
+    }
+
+    private float[] translate(float[] points, float[] currentPoints, float scaleX, float scaleY) {
+        float[] result;
+        if (currentPoints == null) {
+            result = new float[points.length];
+        } else {
+            result = currentPoints;
+        }
         for (int i = 0; i < points.length; i++) {
             if (i % 2 == 0) {
                 float transition = intervalLength * left / 100;
                 result[i] = (points[i] - points[0] - transition) * scaleX;
             } else {
-                result[i] = points[i] * scaleY;
+                result[i] = points[i] * scaleY + chartBottomPadding();
             }
         }
         return result;
@@ -119,25 +147,59 @@ public class ChartView extends View {
         super.draw(canvas);
         if (chart == null) return;
 
-        drawYAxisValues(canvas);
+        if (this.enableGrid) {
+            drawGrid(canvas);
+        }
         drawColumns(canvas, chart.columns);
+        if (this.enableLabels) {
+            drawLabels(canvas);
+        }
     }
 
-    private void drawYAxisValues(@NonNull Canvas canvas) {
+    private void drawLabels(@NonNull final Canvas canvas) {
         for (int i = 0; i <= SEGMENTS_COUNT; i++) {
-            float lineY = getHeight() / SEGMENTS_COUNT * i;
-            canvas.drawLine(0, lineY, getWidth(), lineY, gridPaint);
-            int value = (int) (maxColumnValue - (int) (maxColumnValue / SEGMENTS_COUNT * i));
-            canvas.drawText(String.valueOf(value), 0, lineY - 2 * getDensity(), axisLabelPaint);
+            float lineY = getChartCanvasHeight() / SEGMENTS_COUNT * i;
+            int   value = (int) (maxColumnValue - (int) (maxColumnValue / SEGMENTS_COUNT * i));
+            canvas.drawText(String.valueOf(value), 0, lineY - toDp(Y_LABELS_BOTTOM_PADDING), axisLabelPaint);
         }
+        long from     = (long) chart.getXForPercentage(left);
+        long to       = (long) chart.getXForPercentage(right);
+        long interval = (to - from) / (DATES_COUNT - 1);
+
+        float lastLabelWidth = axisLabelPaint.measureText(DateFormatter.format(to));
+        for (int i = 0; i < DATES_COUNT; i++) {
+            int    dateX = (int) ((getChartCanvasWidth() - lastLabelWidth) * i / (DATES_COUNT - 1));
+            float  dateY = getHeight();
+            String date  = DateFormatter.format(from + interval * i);
+            canvas.drawText(date, dateX, dateY, axisLabelPaint);
+        }
+    }
+
+    private void drawGrid(@NonNull final Canvas canvas) {
+        for (int i = 0; i <= SEGMENTS_COUNT; i++) {
+            float lineY = getChartCanvasHeight() / SEGMENTS_COUNT * i;
+            canvas.drawLine(0, lineY, getChartCanvasWidth(), lineY, gridPaint);
+        }
+    }
+
+    private float getChartCanvasHeight() {
+        return getHeight() - chartBottomPadding();
+    }
+
+    private float chartBottomPadding() {
+        return axisLabelPaint.getTextSize() + toDp(X_LABELS_TOP_PADDING);
+    }
+
+    private float getChartCanvasWidth() {
+        return getWidth();
     }
 
     private void drawColumns(Canvas canvas, List<Column> columns) {
         canvas.save();
-        canvas.scale(1f, -1f, 0, getHeight() / 2);
+        mirrorVertically(canvas);
 
         for (int i = 0; i < columns.size(); i++) {
-            if (visible[i]) {
+            if (isColumnVisible(i)) {
                 canvas.drawLines(drawingPointsForChart[i], columnPaints[i]);
                 canvas.drawLines(drawingPointsForChart[i], 2, drawingPointsForChart[i].length - 2, columnPaints[i]);
             }
@@ -146,18 +208,26 @@ public class ChartView extends View {
         canvas.restore();
     }
 
+    private void mirrorVertically(Canvas canvas) {
+        canvas.scale(1f, -1f, 0, getHeight() / 2);
+    }
+
+    public void setLeftBound(@IntRange(from = 0, to = 100) int leftBound) {
+        setInterval(leftBound, this.right);
+    }
+
+    public void setRightBound(int rightBound) {
+        setInterval(this.left, rightBound);
+    }
+
     public void setInterval(@IntRange(from = 0, to = 100) int left, @IntRange(from = 0, to = 100) int right) {
         this.left = left;
         this.right = right;
-        maxColumnValue = Float.MIN_VALUE;
-        for (int i = 0; i < this.chart.columns.size(); i++) {
-            Column column              = this.chart.columns.get(i);
-            float  maxHeightOfInterval = column.getHeighthOf(left, right);
-            if (maxColumnValue < maxHeightOfInterval) {
-                maxColumnValue = maxHeightOfInterval;
-            }
-        }
-        translateCoordinates();
-        invalidate();
+        calculateCoordinates();
+    }
+
+    public void setColumnVisibility(int position, boolean visible) {
+        this.columnsVisibility[position] = visible;
+        calculateCoordinates();
     }
 }

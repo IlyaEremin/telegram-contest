@@ -1,4 +1,4 @@
-package com.ilyaeremin.graphicmodule;
+package com.ilyaeremin.graphicmodule.utils;
 
 public class ScaleUtils {
 
