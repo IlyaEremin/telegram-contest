@@ -52,7 +52,7 @@ class Column {
     public float getHeighthOf(int left, int right) {
         float min = 0;
         float max = Float.MIN_VALUE;
-        for (int i = 1 + points.length / 100 * left; i < points.length / 100 * right; i+= 2) {
+        for (int i = 1 + MathUtils.roundEven(points.length * left / 100); i < points.length * right / 100; i += 2) {
             if (points[i] > max) {
                 max = points[i];
             }

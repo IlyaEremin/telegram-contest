@@ -50,4 +50,8 @@ public class ColumnTest {
         // Assert
         assertEquals(expectedHeight, actualHeight, 0.000001f);
     }
+
+    @Test
+    public void getHeighthOfTest() {
+    }
 }

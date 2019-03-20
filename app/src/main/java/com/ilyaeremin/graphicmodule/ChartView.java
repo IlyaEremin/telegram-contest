@@ -92,7 +92,7 @@ public class ChartView extends View {
 
     private void translateCoordinates() {
         drawingPointsForChart = new float[chart.columns.size()][];
-        scaleX = getWidth() / chart.columns.get(0).getWidthOf(left, right);
+        scaleX = getWidth() / chart.getWidth(left, right);
         scaleY = getHeight() / maxColumnValue;
         List<Column> columns = chart.columns;
         for (int i = 0; i < columns.size(); i++) {
@@ -104,7 +104,12 @@ public class ChartView extends View {
     private float[] translate(float[] points, float scaleX, float scaleY) {
         float[] result = new float[points.length];
         for (int i = 0; i < points.length; i++) {
-            result[i] = points[i] * (i % 2 == 0 ? scaleX : scaleY);
+            if (i % 2 == 0) {
+                float transition = intervalLength * left / 100;
+                result[i] = (points[i] - transition) * scaleX;
+            } else {
+                result[i] = points[i] * scaleY;
+            }
         }
         return result;
     }
@@ -113,7 +118,6 @@ public class ChartView extends View {
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (chart == null) return;
-        Log.i(TAG, "draw: scaleX: " + scaleX + ", scaleY: " + scaleY);
 
         drawYAxisValues(canvas);
         drawColumns(canvas, chart.columns);
@@ -126,20 +130,16 @@ public class ChartView extends View {
             int value = (int) (maxColumnValue - (int) (maxColumnValue / SEGMENTS_COUNT * i));
             canvas.drawText(String.valueOf(value), 0, lineY - 2 * getDensity(), axisLabelPaint);
         }
-
     }
 
     private void drawColumns(Canvas canvas, List<Column> columns) {
         canvas.save();
         canvas.scale(1f, -1f, 0, getHeight() / 2);
-        canvas.translate(-intervalLength * scaleX / 100 * left, 0);
 
         for (int i = 0; i < columns.size(); i++) {
             if (visible[i]) {
-                int startingPosition = drawingPointsForChart[i].length / 100 * left;
-                int count            = drawingPointsForChart[i].length / 100 * right - startingPosition;
-                canvas.drawLines(drawingPointsForChart[i], startingPosition, count, columnPaints[i]);
-                canvas.drawLines(drawingPointsForChart[i], startingPosition + 2, count - 2, columnPaints[i]);
+                canvas.drawLines(drawingPointsForChart[i], columnPaints[i]);
+                canvas.drawLines(drawingPointsForChart[i], 2, drawingPointsForChart[i].length - 2, columnPaints[i]);
             }
         }
 
@@ -157,7 +157,6 @@ public class ChartView extends View {
                 maxColumnValue = maxHeightOfInterval;
             }
         }
-
         translateCoordinates();
         invalidate();
     }
