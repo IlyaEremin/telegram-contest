@@ -106,7 +106,7 @@ public class ChartView extends View {
         for (int i = 0; i < points.length; i++) {
             if (i % 2 == 0) {
                 float transition = intervalLength * left / 100;
-                result[i] = (points[i] - transition) * scaleX;
+                result[i] = (points[i] - points[0] - transition) * scaleX;
             } else {
                 result[i] = points[i] * scaleY;
             }

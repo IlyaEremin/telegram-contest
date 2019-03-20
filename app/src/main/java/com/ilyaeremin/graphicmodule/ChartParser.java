@@ -57,7 +57,7 @@ class ChartParser {
                     if (column.points == null) {
                         column.points = new float[(columnX.length() - 1) * 2];
                     }
-                    column.points[(i - 1) * 2] = x - initialX;
+                    column.points[(i - 1) * 2] = x;
                     column.points[(i - 1) * 2 + 1] = y;
                 }
             }
