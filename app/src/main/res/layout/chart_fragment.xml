@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/followers"
+            android:textColor="#5095CF"
+            android:textSize="16sp" />
+
+        <com.ilyaeremin.graphicmodule.ChartView
+            android:id="@+id/chart"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            app:enableGrid="true"
+            app:enableLabels="true" />
+
+        <com.ilyaeremin.graphicmodule.ChartView
+            android:id="@+id/chart_preview"
+            android:layout_width="match_parent"
+            android:layout_height="48dp" />
+
+        <android.support.v7.widget.AppCompatSeekBar
+            android:id="@+id/left_bound"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:max="100"
+            android:progress="80" />
+
+        <android.support.v7.widget.AppCompatSeekBar
+            android:id="@+id/right_bound"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:max="100"
+            android:progress="100" />
+
+        <LinearLayout
+            android:id="@+id/columns"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+    </LinearLayout>
+</ScrollView>

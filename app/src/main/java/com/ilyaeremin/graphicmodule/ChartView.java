@@ -23,19 +23,23 @@ public class ChartView extends View {
     public static final  int    LABEL_TEXT_SIZE         = 12;
     public static final  int    Y_LABELS_BOTTOM_PADDING = 4;
     public static final  int    X_LABELS_TOP_PADDING    = 4;
+    public static final  int    FRAMES_PER_ANIMATION    = 6;
 
     private Chart chart;
     boolean[] columnsVisibility;
-    private float[][] drawingPointsForChart;
+    private float[][] chartPoints;
+    private float[][] animatationPositions;
+    private float[][] movingDirections;
     private Paint[]   columnPaints;
     private Paint     gridPaint;
     private Paint     axisLabelPaint;
     float maxColumnValue = Float.MIN_VALUE;
     float intervalLength = Float.MIN_VALUE;
-    private int     left  = 0;
-    private int     right = 100;
+    private int     left                = 0;
+    private int     right               = 100;
     private boolean enableGrid;
     private boolean enableLabels;
+    private int     animationFramesLeft = 0;
 
     public ChartView(Context context) {
         super(context);
@@ -80,12 +84,16 @@ public class ChartView extends View {
 
     public void setChart(@NonNull final Chart chart) {
         this.chart = chart;
-        columnPaints = new Paint[chart.columns.size()];
-        columnsVisibility = new boolean[chart.columns.size()];
-        drawingPointsForChart = new float[chart.columns.size()][];
+        int columnsCount = chart.columns.size();
+        columnPaints = new Paint[columnsCount];
+        columnsVisibility = new boolean[columnsCount];
+        chartPoints = new float[columnsCount][];
+        animatationPositions = new float[columnsCount][];
+        movingDirections = new float[columnsCount][];
+
         Arrays.fill(columnsVisibility, true);
         intervalLength = chart.getWidth(left, right);
-        for (int i = 0; i < chart.columns.size(); i++) {
+        for (int i = 0; i < columnsCount; i++) {
             final Column column = chart.columns.get(i);
             columnPaints[i] = new Paint();
             columnPaints[i].setColor(column.color);
@@ -114,10 +122,28 @@ public class ChartView extends View {
         float        scaleY  = getChartCanvasHeight() / maxColumnValue;
         List<Column> columns = chart.columns;
         for (int i = 0; i < columns.size(); i++) {
-            Column column = columns.get(i);
-            drawingPointsForChart[i] = translate(column.points, drawingPointsForChart[i], scaleX, scaleY);
+            Column  column = columns.get(i);
+            float[] points = translate(column.points, chartPoints[i], scaleX, scaleY);
+            if (chartPoints[i] == null) {
+                animatationPositions[i] = Arrays.copyOf(points, points.length);
+                movingDirections[i] = new float[points.length];
+            } else {
+                calculateMovingVector();
+            }
+            chartPoints[i] = points;
         }
         invalidate();
+    }
+
+    private void calculateMovingVector() {
+        for (int i = 0; i < chartPoints.length; i++) {
+            float[] chartPoint = chartPoints[i];
+            for (int j = 0; j < chartPoint.length; j++) {
+                float point = chartPoint[j];
+                movingDirections[i][j] = (point - animatationPositions[i][j]) / FRAMES_PER_ANIMATION;
+            }
+        }
+        animationFramesLeft = FRAMES_PER_ANIMATION - 1;
     }
 
     private boolean isColumnVisible(int i) {
@@ -197,15 +223,26 @@ public class ChartView extends View {
     private void drawColumns(Canvas canvas, List<Column> columns) {
         canvas.save();
         mirrorVertically(canvas);
-
+        boolean continueAnimation = false;
         for (int i = 0; i < columns.size(); i++) {
-            if (isColumnVisible(i)) {
-                canvas.drawLines(drawingPointsForChart[i], columnPaints[i]);
-                canvas.drawLines(drawingPointsForChart[i], 2, drawingPointsForChart[i].length - 2, columnPaints[i]);
+            if (isColumnVisible(i) && chartPoints[i] != null) {
+                animateColumn(i);
+                canvas.drawLines(animatationPositions[i], columnPaints[i]);
+                canvas.drawLines(animatationPositions[i], 2, animatationPositions[i].length - 2, columnPaints[i]);
             }
         }
-
+        if (animationFramesLeft > 0) {
+            animationFramesLeft--;
+            invalidate();
+        }
         canvas.restore();
+    }
+
+    private void animateColumn(int columnNumber) {
+        float[] columnPoints = chartPoints[columnNumber];
+        for (int i = 0; i < columnPoints.length; i++) {
+            animatationPositions[columnNumber][i] += movingDirections[columnNumber][i];
+        }
     }
 
     private void mirrorVertically(Canvas canvas) {

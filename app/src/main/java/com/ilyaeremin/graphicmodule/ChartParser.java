@@ -12,11 +12,26 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 class ChartParser {
 
-    static Chart parse(@NonNull String jsonString) {
+    static List<String> parse(@NonNull String json) {
+        try {
+            List<String> charts    = new ArrayList<>();
+            JSONArray    jsonArray = new JSONArray(json);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                charts.add(jsonArray.getString(i));
+            }
+            return charts;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    static Chart parseChart(@NonNull String jsonString) {
         try {
             JSONObject          json = new JSONObject(jsonString);
             Map<String, Column> hash = new HashMap<>();
@@ -48,14 +63,13 @@ class ChartParser {
 
             JSONArray columns = json.getJSONArray("columns");
             JSONArray columnX = columns.getJSONArray(0);
-            float initialX = (float) columnX.getDouble(1);
             for (int i = 1; i < columnX.length(); i++) {
                 for (int j = 1; j < columns.length(); j++) {
                     JSONArray columnJson = columns.getJSONArray(j);
                     String    columnKey  = columnJson.getString(0);
                     Column    column     = getOrCreateAddAndGet(hash, columnKey);
-                    float x          = (float) columnX.getDouble(i);
-                    float y      = (float) columnJson.getDouble(i);
+                    float     x          = (float) columnX.getDouble(i);
+                    float     y          = (float) columnJson.getDouble(i);
                     if (column.points == null) {
                         column.points = new float[(columnX.length() - 1) * 2];
                     }
@@ -73,7 +87,8 @@ class ChartParser {
         }
     }
 
-    @Nullable private static Column getOrCreateAddAndGet(Map<String, Column> map, String key) {
+    @Nullable
+    private static Column getOrCreateAddAndGet(Map<String, Column> map, String key) {
         Column v;
         if (((v = map.get(key)) != null) || map.containsKey(key)) {
             return v;
