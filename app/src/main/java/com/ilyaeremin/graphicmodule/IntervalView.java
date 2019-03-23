@@ -59,7 +59,7 @@ public class IntervalView extends View {
         post(new Runnable() {
             @Override
             public void run() {
-                leftBound = getWidth() * 0.8f;
+                leftBound = getWidth() * 0.5f;
                 rightBound = getWidth();
                 invalidate();
             }
@@ -91,6 +91,7 @@ public class IntervalView extends View {
                 } else if (previousTouchX > 0) {
                     float dx = touchX - previousTouchX;
                     setBounds(leftBound + dx, rightBound + dx);
+                    Log.i(TAG, "onTouchEvent: diff after: " + (rightBound - leftBound));
                     previousTouchX = touchX;
                 }
                 return true;
@@ -104,20 +105,28 @@ public class IntervalView extends View {
     }
 
     private void setBounds(float leftBound, float rightBound) {
-        if (leftBound < 0 || rightBound > getWidth() || rightBound - leftBound < toDp(MIN_INTERVAL)) {
+        if (rightBound - leftBound < toDp(MIN_INTERVAL)) {
             return;
         }
-        this.leftBound = leftBound;
-        this.rightBound = rightBound;
+
+        if (leftBound < 0) {
+            this.leftBound = 0;
+        } else if (rightBound > getWidth()) {
+            this.rightBound = getWidth();
+        } else {
+            this.leftBound = Math.round(leftBound * 10) / 10.0f;
+            this.rightBound = Math.round(rightBound * 10) / 10.0f;
+        }
+
         notifyListener();
     }
 
     private void notifyListener() {
         invalidate();
         if (intervalListener != null) {
-            int left  = (int) (this.leftBound * 100 / getWidth());
-            int right = (int) (this.rightBound * 100 / getWidth());
-            Log.i(TAG, "left: " + left + " right: " + right);
+            float left  = this.leftBound * 100f / getWidth();
+            float right = this.rightBound * 100f / getWidth();
+            Log.i(TAG, "notifyListener: left: " + left + " right: " + right + " right - left: " + (right - left));
             intervalListener.onChanged(left, right);
         }
     }
@@ -132,7 +141,6 @@ public class IntervalView extends View {
         canvas.drawColor(NON_ACTIVE_AREA_COLOR);
         canvas.drawRect(getLeftBound(), 0, getRightBound(), getBottom(), activeAreaPaint);
         canvas.drawRect(getLeftBound(), 0, getRightBound(), getBottom(), activeAreaBorderPaint);
-
     }
 
     private float getLeftBound() {

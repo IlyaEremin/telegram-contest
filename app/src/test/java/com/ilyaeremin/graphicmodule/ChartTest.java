@@ -6,8 +6,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
-import static org.junit.Assert.*;
-
 public class ChartTest {
     private final float[] expectedPoints = new float[]{
         0, Float.MAX_VALUE, // <- [0 - 12)%
@@ -27,7 +25,7 @@ public class ChartTest {
     @Before
     public void setUp() {
         final Column expectedColumn = new Column("does_not_matter");
-        expectedColumn.points = expectedPoints;
+        expectedColumn.ys = expectedPoints;
 
         chart = new Chart();
         chart.columns = new ArrayList<Column>() {{

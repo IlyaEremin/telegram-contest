@@ -63,7 +63,7 @@ public class ChartActivity extends AppCompatActivity {
         }
         uiInterval.setOnIntervalChangeListener(new IntervalListener() {
             @Override
-            public void onChanged(int leftBound, int rightBound) {
+            public void onChanged(float leftBound, float rightBound) {
                 uiChart.setInterval(leftBound, rightBound);
             }
         });

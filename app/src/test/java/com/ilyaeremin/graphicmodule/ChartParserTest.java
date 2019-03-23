@@ -33,12 +33,18 @@ public class ChartParserTest {
         Assert.assertEquals(expectedFirstColumnColor, actualFirstColumn.color);
         Assert.assertEquals(expectedFirstColumnName, actualFirstColumn.name);
         Assert.assertEquals(expectedFirstColumnType, actualFirstColumn.type);
-        Assert.assertArrayEquals(expectedFirstColumnPoints, actualFirstColumn.points, 0.00001f);
+        Assert.assertArrayEquals(expectedFirstColumnPoints, actualFirstColumn.ys, 0.00001f);
 
         Column actualSecondColumn = actualChart.columns.get(1);
         Assert.assertEquals(expectedSecondColumnColor, actualSecondColumn.color);
         Assert.assertEquals(expectedSecondColumnName, actualSecondColumn.name);
         Assert.assertEquals(expectedSecondColumnType, actualSecondColumn.type);
-        Assert.assertArrayEquals(expectedSecondColumnPoints, actualSecondColumn.points, 0.00001f);
+        Assert.assertArrayEquals(expectedSecondColumnPoints, actualSecondColumn.ys, 0.00001f);
+
+        for (int i = 0; i < actualSecondColumn.ys.length; i += 2) {
+            System.out.println(DateFormatter.format((long) actualSecondColumn.ys[i]));
+            System.out.printf("dexp: %f\n", actualSecondColumn.ys[i]);
+
+        }
     }
 }

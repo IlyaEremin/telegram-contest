@@ -68,13 +68,16 @@ class ChartParser {
                     JSONArray columnJson = columns.getJSONArray(j);
                     String    columnKey  = columnJson.getString(0);
                     Column    column     = getOrCreateAddAndGet(hash, columnKey);
-                    float     x          = (float) columnX.getDouble(i);
+                    long      x          = columnX.getLong(i);
                     float     y          = (float) columnJson.getDouble(i);
-                    if (column.points == null) {
-                        column.points = new float[(columnX.length() - 1) * 2];
+                    if (column.ys == null) {
+                        column.ys = new float[(columnX.length() - 1)];
                     }
-                    column.points[(i - 1) * 2] = x;
-                    column.points[(i - 1) * 2 + 1] = y;
+                    if (column.xs == null) {
+                        column.xs = new long[(columnX.length() - 1)];
+                    }
+                    column.xs[i - 1] = x;
+                    column.ys[i - 1] = y;
                 }
             }
 

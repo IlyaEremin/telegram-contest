@@ -12,7 +12,7 @@ public class ColumnTest {
         final String expectedId    = "y1";
         final Column column        = new Column(expectedId);
         final long   expectedWidth = 100L;
-        column.points = new float[]{0L, 0L, 100L, 0L};
+        column.ys = new float[]{0L, 0L, 100L, 0L};
 
         // Act
         float actualWidth = column.getWidth();
@@ -27,7 +27,7 @@ public class ColumnTest {
         final String expectedId     = "y1";
         final Column column         = new Column(expectedId);
         final float  expectedHeight = 123L;
-        column.points = new float[]{0, 0, 0, 123, 0, 0};
+        column.ys = new float[]{0, 0, 0, 123, 0, 0};
 
         // Act
         float actualHeight = column.getHeight();
@@ -42,7 +42,7 @@ public class ColumnTest {
         final String expectedId     = "y1";
         final Column column         = new Column(expectedId);
         final float  expectedHeight = 123L;
-        column.points = new float[]{0, 10, 0, 123};
+        column.ys = new float[]{0, 10, 0, 123};
 
         // Act
         float actualHeight = column.getHeight();

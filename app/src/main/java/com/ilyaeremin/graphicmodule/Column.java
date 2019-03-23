@@ -8,7 +8,8 @@ class Column {
     private final String id;
     String  name;
     int     color;
-    float[] points;
+    long[]  xs;
+    float[] ys;
     Type    type;
 
     Column(String id) {
@@ -25,7 +26,7 @@ class Column {
         if (color != column.color) return false;
         if (!id.equals(column.id)) return false;
         if (!name.equals(column.name)) return false;
-        if (!Arrays.equals(points, column.points)) return false;
+        if (!Arrays.equals(ys, column.ys)) return false;
         return type == column.type;
     }
 
@@ -34,32 +35,32 @@ class Column {
         int result = id.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + color;
-        result = 31 * result + Arrays.hashCode(points);
+        result = 31 * result + Arrays.hashCode(ys);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 
     public float getWidth() {
-        return points[points.length - 2] - points[0];
+        return xs[xs.length - 1] - xs[0];
     }
 
     public float getWidthOf(int left, int right) {
-        return points[points.length / 100 * right] - points[points.length / 100 * left];
+        return xs[xs.length / 100 * right] - xs[xs.length / 100 * left];
     }
 
     public float getHeight() {
         return getHeighthOf(0, 100);
     }
 
-    public float getHeighthOf(int left, int right) {
+    public float getHeighthOf(float left, float right) {
         float min = 0;
         float max = Float.MIN_VALUE;
-        for (int i = 1 + MathUtils.roundEven(points.length * left / 100); i < points.length * right / 100; i += 2) {
-            if (points[i] > max) {
-                max = points[i];
+        for (int i = MathUtils.roundEven(ys.length * left / 100); i < ys.length * right / 100; i ++) {
+            if (ys[i] > max) {
+                max = ys[i];
             }
-            if (points[i] < min) {
-                min = points[i];
+            if (ys[i] < min) {
+                min = ys[i];
             }
         }
         return max - min;
