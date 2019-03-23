@@ -28,24 +28,23 @@
             app:enableGrid="true"
             app:enableLabels="true" />
 
-        <com.ilyaeremin.graphicmodule.ChartView
-            android:id="@+id/chart_preview"
+        <FrameLayout
+            android:id="@+id/preview"
             android:layout_width="match_parent"
-            android:layout_height="48dp" />
+            android:layout_height="48dp">
 
-        <android.support.v7.widget.AppCompatSeekBar
-            android:id="@+id/left_bound"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:max="100"
-            android:progress="80" />
+            <com.ilyaeremin.graphicmodule.ChartView
+                android:id="@+id/chart_preview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-        <android.support.v7.widget.AppCompatSeekBar
-            android:id="@+id/right_bound"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:max="100"
-            android:progress="100" />
+            <com.ilyaeremin.graphicmodule.IntervalView
+                android:id="@+id/interval"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+
+        </FrameLayout>
 
         <LinearLayout
             android:id="@+id/columns"

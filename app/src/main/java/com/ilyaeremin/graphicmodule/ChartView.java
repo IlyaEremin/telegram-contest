@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import java.util.Arrays;
@@ -173,6 +174,8 @@ public class ChartView extends View {
         super.draw(canvas);
         if (chart == null) return;
 
+        Log.i(TAG, "DRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW");
+
         if (this.enableGrid) {
             drawGrid(canvas);
         }
@@ -213,7 +216,7 @@ public class ChartView extends View {
     }
 
     private float chartBottomPadding() {
-        return axisLabelPaint.getTextSize() + toDp(X_LABELS_TOP_PADDING);
+        return enableGrid ? (axisLabelPaint.getTextSize() + toDp(X_LABELS_TOP_PADDING)) : 0;
     }
 
     private float getChartCanvasWidth() {
@@ -223,7 +226,6 @@ public class ChartView extends View {
     private void drawColumns(Canvas canvas, List<Column> columns) {
         canvas.save();
         mirrorVertically(canvas);
-        boolean continueAnimation = false;
         for (int i = 0; i < columns.size(); i++) {
             if (isColumnVisible(i) && chartPoints[i] != null) {
                 animateColumn(i);
@@ -247,14 +249,6 @@ public class ChartView extends View {
 
     private void mirrorVertically(Canvas canvas) {
         canvas.scale(1f, -1f, 0, getHeight() / 2);
-    }
-
-    public void setLeftBound(@IntRange(from = 0, to = 100) int leftBound) {
-        setInterval(leftBound, this.right);
-    }
-
-    public void setRightBound(int rightBound) {
-        setInterval(this.left, rightBound);
     }
 
     public void setInterval(@IntRange(from = 0, to = 100) int left, @IntRange(from = 0, to = 100) int right) {
