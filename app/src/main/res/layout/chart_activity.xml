@@ -36,13 +36,13 @@
             <com.ilyaeremin.graphicmodule.ChartView
                 android:id="@+id/chart_preview"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                app:isPreview="true" />
 
             <com.ilyaeremin.graphicmodule.IntervalView
                 android:id="@+id/interval"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                />
+                android:layout_height="match_parent" />
 
         </FrameLayout>
 

@@ -1,7 +1,5 @@
 package com.ilyaeremin.graphicmodule;
 
-import com.ilyaeremin.graphicmodule.utils.MathUtils;
-
 import java.util.Arrays;
 
 class Column {
@@ -44,18 +42,14 @@ class Column {
         return xs[xs.length - 1] - xs[0];
     }
 
-    public float getWidthOf(int left, int right) {
-        return xs[xs.length / 100 * right] - xs[xs.length / 100 * left];
-    }
-
     public float getHeight() {
-        return getHeighthOf(0, 100);
+        return getHeightOf(0, 100);
     }
 
-    public float getHeighthOf(float left, float right) {
+    public float getHeightOf(float left, float right) {
         float min = 0;
         float max = Float.MIN_VALUE;
-        for (int i = MathUtils.roundEven(ys.length * left / 100); i < ys.length * right / 100; i ++) {
+        for (int i = (int) (ys.length * left / 100); i < ys.length * right / 100; i ++) {
             if (ys[i] > max) {
                 max = ys[i];
             }

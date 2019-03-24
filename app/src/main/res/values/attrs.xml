@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="ChartView">
+        <attr name="isPreview" format="boolean" />
         <attr name="enableGrid" format="boolean" />
         <attr name="enableLabels" format="boolean" />
     </declare-styleable>

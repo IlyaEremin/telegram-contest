@@ -26,9 +26,9 @@ public class IntervalView extends View {
 
     private boolean expandLeftBound  = false;
     private boolean expandRightBound = false;
-    private float   leftBound;
-    private float   rightBound;
-    private float   previousTouchX   = -1;
+    private int     leftBound;
+    private int     rightBound;
+    private int     previousTouchX   = -1;
 
     public IntervalView(Context context) {
         super(context);
@@ -59,7 +59,7 @@ public class IntervalView extends View {
         post(new Runnable() {
             @Override
             public void run() {
-                leftBound = getWidth() * 0.5f;
+                leftBound = (int) (getWidth() * 0.8f);
                 rightBound = getWidth();
                 invalidate();
             }
@@ -68,18 +68,18 @@ public class IntervalView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        float touchX = event.getX();
+        int touchX = (int) event.getX();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (Math.abs(touchX - getLeftBound()) < CHIN_WIDTH) {
+                if (Math.abs(touchX - getLeftBound()) < CHIN_WIDTH * 2) {
                     expandLeftBound = true;
-                } else if (Math.abs(touchX - getRightBound()) < CHIN_WIDTH) {
+                } else if (Math.abs(touchX - getRightBound()) < CHIN_WIDTH * 2) {
                     expandRightBound = true;
                 } else if (touchX > leftBound && touchX < rightBound) {
                     previousTouchX = touchX;
                 } else {
                     previousTouchX = touchX;
-                    float interval = rightBound - leftBound;
+                    int interval = rightBound - leftBound;
                     setBounds(touchX - interval / 2, touchX + interval / 2);
                 }
                 return true;
@@ -89,7 +89,7 @@ public class IntervalView extends View {
                 } else if (expandRightBound) {
                     setBounds(this.leftBound, touchX);
                 } else if (previousTouchX > 0) {
-                    float dx = touchX - previousTouchX;
+                    int dx = touchX - previousTouchX;
                     setBounds(leftBound + dx, rightBound + dx);
                     Log.i(TAG, "onTouchEvent: diff after: " + (rightBound - leftBound));
                     previousTouchX = touchX;
@@ -104,7 +104,7 @@ public class IntervalView extends View {
         return super.onTouchEvent(event);
     }
 
-    private void setBounds(float leftBound, float rightBound) {
+    private void setBounds(int leftBound, int rightBound) {
         if (rightBound - leftBound < toDp(MIN_INTERVAL)) {
             return;
         }
@@ -114,8 +114,8 @@ public class IntervalView extends View {
         } else if (rightBound > getWidth()) {
             this.rightBound = getWidth();
         } else {
-            this.leftBound = Math.round(leftBound * 10) / 10.0f;
-            this.rightBound = Math.round(rightBound * 10) / 10.0f;
+            this.leftBound = leftBound;
+            this.rightBound = rightBound;
         }
 
         notifyListener();

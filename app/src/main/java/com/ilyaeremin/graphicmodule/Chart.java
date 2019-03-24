@@ -1,21 +1,24 @@
 package com.ilyaeremin.graphicmodule;
 
-import com.ilyaeremin.graphicmodule.utils.MathUtils;
+import android.util.Log;
 
 import java.util.List;
 
 public class Chart {
+    private static final String TAG = "Chart";
     List<Column> columns;
 
-    public float getWidth(float from, float to) {
-        float fromX = getXForPercentage(from);
-        float toX   = getXForPercentage(to);
+    public long getWidth(float from, float to) {
+        Log.i(TAG, "RASSLEDOVANIE getWidth: from: " + from + " to " + to + " diff: " + (to - from));
+        long fromX = getXForPercentage(from);
+        long toX = getXForPercentage(to);
         return toX - fromX;
     }
 
-    public float getXForPercentage(float percentage) {
+    public long getXForPercentage(float percentage) {
         Column column = columns.get(0);
-        int    index  = MathUtils.roundEven((column.xs.length - 2) * percentage / 100);
+        int    index  = (column.xs.length - 1) * (int) percentage / 100;
+        Log.i(TAG, "RASSLEDOVANIE getXForPercentage: index: " + index);
         return column.xs[index];
     }
 }

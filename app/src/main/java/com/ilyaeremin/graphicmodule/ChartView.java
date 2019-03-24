@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.Arrays;
@@ -34,16 +35,19 @@ public class ChartView extends View {
     private Paint[]   columnPaints;
     private Paint     gridPaint;
     private Paint     axisLabelPaint;
+    private Paint     selectionPaint;
     float maxColumnValue = Float.MIN_VALUE;
-    float intervalLength = Float.MIN_VALUE;
+    long  intervalLength = Long.MIN_VALUE;
     private float   left                = 0f;
     private float   right               = 100f;
     private boolean enableGrid;
     private boolean enableLabels;
     private int     animationFramesLeft = 0;
+    private float   viewPortWidth       = 0;
 
-    private float scaleX;
-    private float scaleY;
+    private float   scaleX;
+    private boolean isPreview;
+    private int     pressedX;
 
     public ChartView(Context context) {
         super(context);
@@ -64,10 +68,15 @@ public class ChartView extends View {
         axisLabelPaint.setTextSize(toSp(LABEL_TEXT_SIZE));
         axisLabelPaint.setColor(0xFF9AA5AC);
 
+        selectionPaint = new Paint();
+        selectionPaint.setColor(0xFFE5EBEF);
+        selectionPaint.setStrokeWidth(toDp(2));
+
         TypedArray a = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.ChartView, 0, 0);
         try {
             this.enableGrid = a.getBoolean(R.styleable.ChartView_enableGrid, false);
             this.enableLabels = a.getBoolean(R.styleable.ChartView_enableLabels, false);
+            this.isPreview = a.getBoolean(R.styleable.ChartView_isPreview, false);
         } finally {
             a.recycle();
         }
@@ -111,17 +120,14 @@ public class ChartView extends View {
         for (int i = 0; i < this.chart.columns.size(); i++) {
             Column column = this.chart.columns.get(i);
             if (isColumnVisible(i)) {
-                float maxHeightOfInterval = column.getHeighthOf(left, right);
+                float maxHeightOfInterval = column.getHeightOf(left, right);
                 if (maxColumnValue < maxHeightOfInterval) {
                     maxColumnValue = maxHeightOfInterval;
                 }
             }
         }
-        float chartWidth = chart.getWidth(left, right);
-        Log.i(TAG, "scaleX: CHART WIDTH: " + chartWidth + " for left: " + left + ", right: " + right + " right - left: " + (right - left));
-        scaleX = getChartCanvasWidth() / chartWidth;
-        scaleY = getChartCanvasHeight() / maxColumnValue;
-        Log.i(TAG, "scaleX:" + scaleX + " scaleY: " + scaleY + " right - left: " + (right - left));
+        updateScaleX();
+        float        scaleY  = getChartCanvasHeight() / maxColumnValue;
         List<Column> columns = chart.columns;
         for (int i = 0; i < columns.size(); i++) {
             Column  column = columns.get(i);
@@ -137,12 +143,23 @@ public class ChartView extends View {
         invalidate();
     }
 
+    private void updateScaleX() {
+        Log.i(TAG, "updateScaleX: diff: " + Math.abs((right - left) - viewPortWidth));
+        if (viewPortWidth == 0 || Math.abs((right - left) - viewPortWidth) > 0.05) {
+            float chartCanvasWidth = getChartCanvasWidth();
+            if (chartCanvasWidth > 0) {
+                viewPortWidth = right - left;
+                long chartWidth = chart.getWidth(left, right);
+                scaleX = chartCanvasWidth / chartWidth;
+            }
+        }
+    }
+
     private void calculateMovingVector() {
         for (int i = 0; i < chartPoints.length; i++) {
             float[] chartPoint = chartPoints[i];
             for (int j = 0; j < chartPoint.length; j++) {
-                float point = chartPoint[j];
-                movingDirections[i][j] = (point - animationPositions[i][j]) / FRAMES_PER_ANIMATION;
+                movingDirections[i][j] = (chartPoint[j] - animationPositions[i][j]) / FRAMES_PER_ANIMATION;
             }
         }
         animationFramesLeft = FRAMES_PER_ANIMATION - 1;
@@ -169,11 +186,11 @@ public class ChartView extends View {
         return result;
     }
 
-    private float getXTransition() {
-        return getGraphFirstX() + intervalLength * left / 100;
+    private long getXTransition() {
+        return (long) (getGraphFirstX() + intervalLength * left / 100);
     }
 
-    private float getGraphFirstX() {
+    private long getGraphFirstX() {
         return chart.columns.get(0).xs[0];
     }
 
@@ -182,16 +199,19 @@ public class ChartView extends View {
         super.draw(canvas);
         if (chart == null) return;
 
-        Log.i(TAG, "DRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW");
-
         if (this.enableGrid) {
             drawGrid(canvas);
         }
         drawColumns(canvas, chart.columns);
+        drawPressedPosition(canvas);
         if (this.enableLabels) {
             drawValues(canvas);
             drawDates(canvas);
         }
+    }
+
+    private void drawPressedPosition(@NonNull Canvas canvas) {
+        canvas.drawLine(pressedX, 0, pressedX, getChartCanvasHeight(), selectionPaint);
     }
 
     private void drawValues(@NonNull Canvas canvas) {
@@ -205,17 +225,17 @@ public class ChartView extends View {
 
     private void drawDates(@NonNull Canvas canvas) {
         axisLabelPaint.setTextAlign(Paint.Align.CENTER);
-        float   transition = getXTransition();
-        float   dateY      = getHeight();
+        long  transition = getXTransition();
+        float dateY      = getHeight();
         Log.i(TAG, "drawDates: left: " + left + " right: " + right);
-        final float[] datesX     = LabelUtils.generateDatesX(left, right, DATES_COUNT);
+        final float[] datesX = LabelUtils.generateDatesX(left, right, DATES_COUNT);
         for (float aDatesX : datesX) {
             if (aDatesX > 100f) {
                 Log.i(TAG, "drawDates: breakpoint here");
             }
-            float  xForStep = chart.getXForPercentage(aDatesX);
+            long   xForStep = chart.getXForPercentage(aDatesX);
             float  dateX    = (xForStep - transition) * scaleX;
-            String date     = DateFormatter.format((long) xForStep);
+            String date     = DateFormatter.format(xForStep);
             Log.i(TAG, "drawDates: left: " + left + " right: " + right);
             canvas.drawText(date, dateX, dateY, axisLabelPaint);
         }
@@ -277,5 +297,28 @@ public class ChartView extends View {
     public void setColumnVisibility(int position, boolean visible) {
         this.columnsVisibility[position] = visible;
         calculateCoordinates();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (isPreview) {
+            return super.onTouchEvent(event);
+        } else {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_MOVE:
+                    onPressedOnChart((int) event.getX());
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    onPressedOnChart((int) event.getX());
+                    return true;
+            }
+        }
+        return super.onTouchEvent(event);
+    }
+
+    private void onPressedOnChart(int x) {
+        pressedX = x;
+        invalidate();
     }
 }
